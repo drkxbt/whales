@@ -5,7 +5,8 @@ Licensed under the MIT License. See LICENSE.
 
 The data shown comes from Hyperliquid's public info API, websocket and leaderboard. Hyperliquid is a trademark
 of its owner; this project is not affiliated with, endorsed by or connected to Hyperliquid. Wallet addresses
-and display names are shown as Hyperliquid serves them.
+and display names are shown as Hyperliquid serves them. Coin logos are loaded from Hyperliquid's app when a list
+shows them; they are not part of this repository and belong to their projects.
 
 demo/sample/recorded.json.gz holds a condensed board, info answers and forty seconds of trades of $10K and up,
 recorded from those public sources on October 27, 2026 (UTC) and trimmed to the fields the library reads. The

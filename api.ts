@@ -74,6 +74,15 @@ export interface Fill {
   fee: number;
 }
 
+export interface SpotPair {
+  /** The pair as fills name it: "PURR/USDC" for the first, "@" and an index for the rest. */
+  coin: string;
+  /** The base and quote tokens, as in "UBTC/USDC". */
+  name: string;
+  /** The base token's logo. */
+  icon: string;
+}
+
 export interface Trade {
   id: string;
   coin: string;
@@ -120,6 +129,8 @@ export interface Client {
   fills(wallet: string, options?: Read): Promise<Fill[]>;
   /** The last few trades on a coin, newest first. */
   recentTrades(coin: string, options?: Read): Promise<Trade[]>;
+  /** Spot pairs by the name fills give them. */
+  spotPairs(options?: Read): Promise<Map<string, SpotPair>>;
 }
 
 export class ApiError extends Error {
@@ -140,6 +151,12 @@ const WALLET = /^0x[0-9a-fA-F]{40}$/;
 
 export function isWallet(value: string): boolean {
   return WALLET.test(value);
+}
+
+/** Where Hyperliquid's own app keeps a coin's logo. Coins quoted per thousand, like kPEPE, use the coin's. A coin
+ *  without one gets the app's HTML page back, which an image element fails to load. */
+export function coinIcon(coin: string): string {
+  return `https://app.hyperliquid.xyz/coins/${encodeURIComponent(coin.replace(/^k(?=[A-Z])/, ""))}.svg`;
 }
 
 /** A board as a server sent it: JSON has no NaN, so a missing number arrives as null and is read back as NaN. */
@@ -216,6 +233,22 @@ export function toAccount(wallet: string, body: unknown): Account {
     withdrawable: num(state.withdrawable),
     positions: positions.sort((a, b) => b.value - a.value),
   };
+}
+
+export function toSpotPairs(body: unknown): Map<string, SpotPair> {
+  const meta = (body ?? {}) as { tokens?: Row[]; universe?: Row[] };
+  const tokens = new Map((meta.tokens ?? []).map((token) => [num(token.index), token]));
+  const pairs = new Map<string, SpotPair>();
+  for (const pair of meta.universe ?? []) {
+    const [base, quote] = (Array.isArray(pair.tokens) ? pair.tokens : []).map((index) => tokens.get(num(index)));
+    if (!base || !quote) continue;
+    const coin = str(pair.name);
+    const baseName = str(base.name);
+    // Unit's tokens (UBTC is "Unit Bitcoin") carry a coin that has a perp, and Hyperliquid keeps no logo of their own.
+    const icon = /^Unit /.test(str(base.fullName)) ? coinIcon(baseName.slice(1)) : `https://app.hyperliquid.xyz/coins/${encodeURIComponent(baseName)}_spot.svg`;
+    pairs.set(coin, { coin, name: `${baseName}/${str(quote.name)}`, icon });
+  }
+  return pairs;
 }
 
 export function toFill(row: Row): Fill {
@@ -345,6 +378,10 @@ export function client(options: ClientOptions = {}): Client {
     async recentTrades(coin, { signal } = {}) {
       const rows = (await info({ type: "recentTrades", coin }, signal, 5_000)) as Row[];
       return (Array.isArray(rows) ? rows : []).map(toTrade).sort((a, b) => b.time - a.time);
+    },
+
+    async spotPairs({ signal } = {}) {
+      return toSpotPairs(await info({ type: "spotMeta" }, signal, 600_000));
     },
   };
 }

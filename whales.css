@@ -22,6 +22,8 @@
   --wh-star: #e3a000;
   --wh-new: rgb(47 240 184 / 0.22);
   --wh-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 12px 32px -12px rgb(0 0 0 / 0.18);
+  --wh-logo-plate: transparent;
+  --wh-logo-edge: rgb(0 0 0 / 0.08);
   --wh-radius: 10px;
   --wh-ease: cubic-bezier(0.23, 1, 0.32, 1);
   --wh-mono: "Geist Mono", ui-monospace, monospace;
@@ -51,6 +53,8 @@
   --wh-short-bg: rgb(255 106 94 / 0.12);
   --wh-new: rgb(47 240 184 / 0.14);
   --wh-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  --wh-logo-plate: #ffffff;
+  --wh-logo-edge: rgb(255 255 255 / 0.1);
   color-scheme: dark;
 }
 
@@ -73,6 +77,8 @@
     --wh-short-bg: rgb(255 106 94 / 0.12);
     --wh-new: rgb(47 240 184 / 0.14);
     --wh-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -12px rgb(0 0 0 / 0.6);
+    --wh-logo-plate: #ffffff;
+    --wh-logo-edge: rgb(255 255 255 / 0.1);
     color-scheme: dark;
   }
 }
@@ -831,10 +837,25 @@ html:has(.wh-wallet[open]) { overflow: hidden; }
   border-radius: 8px;
   background: hsl(var(--wh-hue) 30% 90%);
   color: hsl(var(--wh-hue) 45% 28%);
+  position: relative;
   font-size: 14px;
   font-weight: 700;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
 }
+.wh-coin-mark.has-logo { background: none; box-shadow: none; color: transparent; }
+.wh-coin-mark .wh-logo { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Some of Hyperliquid's logos are black marks with no ground, drawn for its dark app; the plate under them is white
+   in the dark theme so they stay visible. It shows only once the logo has loaded, so the letter shows until then. */
+.wh-logo {
+  border-radius: 50%;
+  outline: 1px solid var(--wh-logo-edge);
+  outline-offset: -1px;
+  object-fit: cover;
+}
+.wh-logo.is-loaded { background: var(--wh-logo-plate); }
+.wh-coin-mark.is-small { width: 14px; height: 14px; margin-right: 5px; border-radius: 50%; font-size: 8px; }
+.wh-fill-text .wh-coin-mark.is-small { vertical-align: -2px; }
 .wh[data-theme="dark"] .wh-coin-mark { background: hsl(var(--wh-hue) 18% 22%); color: hsl(var(--wh-hue) 60% 80%); }
 
 .wh-bias { display: grid; gap: 6px; min-width: 0; }

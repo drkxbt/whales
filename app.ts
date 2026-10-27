@@ -1,4 +1,4 @@
-import { client, isWallet, type Account, type Client, type ClientOptions, type Fill, type Market, type Position, type Trade, type Trader } from "./api.js";
+import { client, coinIcon, isWallet, type Account, type Client, type ClientOptions, type Fill, type Market, type Position, type SpotPair, type Trade, type Trader } from "./api.js";
 import { WINDOWS as WINDOW_KEYS, type Board, type Window } from "./board.js";
 import { displayName, EMPTY, formatAge, formatLeverage, formatPercent, formatPnl, formatPrice, formatSize, formatUsd, shortWallet } from "./format.js";
 import { fillRecord, pageList, positioning, sortPositioning, sparkline, type CoinRow, type PositionSort } from "./model.js";
@@ -31,6 +31,9 @@ export interface WhalesOptions extends ClientOptions {
   live?: boolean;
   /** The websocket's address. */
   socket?: string;
+  /** Each perp's logo address: Hyperliquid's own by default, or false to show the coin's first letter only. Spot
+   *  pairs in a wallet's fills show Hyperliquid's logos unless this is false. */
+  coinIcon?: ((coin: string) => string) | false;
   /** A WebSocket implementation for the tape, for runtimes without one or to replay a recording. */
   WebSocket?: typeof WebSocket;
   theme?: "light" | "dark" | "auto";
@@ -87,6 +90,8 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
   const live = options.live ?? true;
   const depth = Math.max(5, Math.min(200, options.depth ?? 50));
   const coinCount = Math.max(1, Math.min(100, options.coins ?? 30));
+  const iconFor = options.coinIcon === false ? () => "" : (options.coinIcon ?? coinIcon);
+  const pairIcon = (pair: SpotPair) => (options.coinIcon === false ? "" : pair.icon);
   const state: WhalesState = {
     view: "positions",
     window: "month",
@@ -259,7 +264,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     summary.setAttribute("aria-expanded", String(openCoins.has(row.coin)));
 
     const name = element("span", "wh-coin-name");
-    name.append(coinMark(row.coin), element("span", "wh-coin-ticker", row.coin));
+    name.append(coinMark(row.coin, iconFor(row.coin)), element("span", "wh-coin-ticker", row.coin));
     const price = element("span", "wh-coin-price");
     price.append(element("span", "", formatPrice(row.mark)), element("span", `wh-change ${tone(row.change)}`, formatPercent(row.change * 100, true)));
     name.append(price);
@@ -443,7 +448,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
         const top = tops.get(who.wallet);
         const traderCellEl = traderCell(top ?? blankTrader(who.wallet), () => openWallet(who.wallet, tr), Boolean(top));
         const what = element("td", "wh-what");
-        what.append(element("span", `wh-side ${who.side === "buy" ? "is-buy" : "is-sell"}`, who.side === "buy" ? "Bought" : "Sold"), coinChip(trade.coin), element("span", "wh-muted", formatSize(trade.size)));
+        what.append(element("span", `wh-side ${who.side === "buy" ? "is-buy" : "is-sell"}`, who.side === "buy" ? "Bought" : "Sold"), coinChip(trade.coin, iconFor(trade.coin)), element("span", "wh-muted", formatSize(trade.size)));
         tr.append(when, traderCellEl, what, cell("wh-num wh-muted wh-hide-sm", formatPrice(trade.price)), cell("wh-num wh-strong", formatUsd(trade.usd)));
         return tr;
       }),
@@ -690,10 +695,14 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
 
     api
       .fills(wallet, { signal })
-      .then((fills) => {
+      .then(async (fills) => {
+        // Spot fills name their pair by an index ("@107"), so the pairs are read only for wallets that trade spot.
+        const spot = fills.some((fill) => fill.coin.startsWith("@") || fill.coin.includes("/"))
+          ? await api.spotPairs({ signal }).catch(() => new Map<string, SpotPair>())
+          : new Map<string, SpotPair>();
         if (signal.aborted) return;
         drawRecord(fills, record);
-        drawFills(fills, history);
+        drawFills(fills, history, spot);
       })
       .catch(() => {
         record.replaceChildren(sectionHead("Record", ""), element("p", "wh-note", "Couldn't load the record."));
@@ -730,7 +739,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
   function positionItem(position: Position): HTMLLIElement {
     const li = element("li", "wh-position");
     const topLine = element("div", "wh-position-top");
-    topLine.append(coinMark(position.coin), element("span", "wh-position-coin", position.coin), sideChip(position), element("span", "wh-muted", `${formatLeverage(position.leverage)} ${position.leverageType}`));
+    topLine.append(coinMark(position.coin, iconFor(position.coin)), element("span", "wh-position-coin", position.coin), sideChip(position), element("span", "wh-muted", `${formatLeverage(position.leverage)} ${position.leverageType}`));
     const facts = element("div", "wh-position-facts");
     facts.append(
       element("span", "wh-muted", `${formatSize(position.size, position.coin)} · ${formatPrice(position.entry)} → ${formatPrice(position.mark)}`),
@@ -755,7 +764,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     box.replaceChildren(sectionHead("Record", since), result.closes ? list : element("p", "wh-note", "No closed trades in the latest fills."), element("p", "wh-note", `Fees paid in these fills: ${formatUsd(result.fees)}.`));
   }
 
-  function drawFills(fills: Fill[], box: HTMLElement) {
+  function drawFills(fills: Fill[], box: HTMLElement, spot: Map<string, SpotPair>) {
     const list = element("ul", "wh-fills");
     const fillPager = pager("Fill pages", () => {
       draw();
@@ -763,18 +772,19 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     });
     function draw() {
       fillPager.update(fills.length);
-      list.replaceChildren(...fills.slice((fillPager.page - 1) * PAGE, fillPager.page * PAGE).map(fillItem));
+      list.replaceChildren(...fills.slice((fillPager.page - 1) * PAGE, fillPager.page * PAGE).map((fill) => fillItem(fill, spot.get(fill.coin))));
     }
     draw();
     box.replaceChildren(sectionHead("Fills", fills.length ? `latest ${fills.length.toLocaleString("en-US")}` : ""), fills.length ? list : element("p", "wh-note", "No fills yet."), fillPager.element);
   }
 
-  function fillItem(fill: Fill): HTMLLIElement {
+  function fillItem(fill: Fill, pair?: SpotPair): HTMLLIElement {
     const li = element("li", "wh-fill");
+    const coin = pair?.name ?? fill.coin;
     const opening = /^open/i.test(fill.direction);
     li.append(
       element("span", `wh-side ${fill.side === "buy" ? "is-buy" : "is-sell"}`, fill.direction || (fill.side === "buy" ? "Buy" : "Sell")),
-      element("span", "wh-fill-text", `${fill.coin} · ${formatSize(fill.size)} at ${formatPrice(fill.price)}`),
+      element("span", "wh-fill-text", undefined, [coinMark(coin, pair ? pairIcon(pair) : iconFor(fill.coin), "is-small"), document.createTextNode(`${coin} · ${formatSize(fill.size)} at ${formatPrice(fill.price)}`)]),
       element("span", "wh-num", formatUsd(fill.usd)),
       element("span", `wh-num ${opening || !fill.closedPnl ? "wh-muted" : tone(fill.closedPnl)}`, opening || !fill.closedPnl ? formatAge(fill.time) : `${formatPnl(fill.closedPnl)} · ${formatAge(fill.time)}`),
     );
@@ -955,15 +965,46 @@ function sideChip(position: { side: "long" | "short" }): HTMLElement {
   return element("span", `wh-chip ${position.side === "long" ? "is-long" : "is-short"}`, position.side === "long" ? "Long" : "Short");
 }
 
-function coinChip(coin: string): HTMLElement {
-  return element("span", "wh-chip", coin);
+function coinChip(coin: string, logo: string): HTMLElement {
+  return element("span", "wh-chip", undefined, [coinMark(coin, logo, "is-small"), document.createTextNode(coin)]);
 }
 
-function coinMark(coin: string): HTMLElement {
-  const mark = element("span", "wh-coin-mark", coin.replace(/^k(?=[A-Z])/, "").slice(0, 1));
+/** The coin's first letter on a tile, covered by its logo once that loads. */
+function coinMark(coin: string, src: string, extra = ""): HTMLElement {
+  const mark = element("span", `wh-coin-mark ${extra}`.trim(), coin.replace(/^k(?=[A-Z])/, "").slice(0, 1));
   mark.setAttribute("aria-hidden", "true");
   mark.style.setProperty("--wh-hue", String(hue(coin)));
+  const logo = coinLogo(src, () => mark.classList.add("has-logo"));
+  if (logo) mark.append(logo);
   return mark;
+}
+
+// Lists redraw often; remembering which logos loaded keeps a known one from flashing its letter first, and
+// remembering which failed keeps a coin without one from asking again.
+const loadedLogos = new Set<string>();
+const missingLogos = new Set<string>();
+
+function coinLogo(src: string, onLoad: () => void): HTMLImageElement | null {
+  if (!src || missingLogos.has(src)) return null;
+  const img = element("img", "wh-logo");
+  img.alt = "";
+  img.decoding = "async";
+  img.referrerPolicy = "no-referrer";
+  const shown = () => {
+    img.classList.add("is-loaded");
+    onLoad();
+  };
+  img.addEventListener("load", () => {
+    loadedLogos.add(src);
+    shown();
+  }, { once: true });
+  img.addEventListener("error", () => {
+    missingLogos.add(src);
+    img.remove();
+  }, { once: true });
+  if (loadedLogos.has(src)) shown();
+  img.src = src;
+  return img;
 }
 
 function avatar(name: string, wallet: string, extra = ""): HTMLElement {

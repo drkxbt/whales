@@ -6,9 +6,9 @@ See how Hyperliquid's best traders are positioned. Positions adds up the open pe
 
 Trackers of Hyperliquid's top wallets usually keep the useful parts behind a paid plan: where the big accounts are positioned, alerts when they trade, more than a handful of wallets. This one is MIT licensed: use it in a product, change it, ship it.
 
-- **Positions.** The open perp positions of the board's top traders, added up by coin: the number of traders long and short, the value on each side as a bar, the average entry on each side weighted by size, the open profit, and every holder with their value, entry, liquidation price and leverage. Sort by the most traders, the most money, the most long, the most short or the most in profit.
+- **Positions.** The open perp positions of the board's top traders, added up by coin: the number of traders long and short, the value on each side as a bar, the average entry on each side weighted by size, the open profit, and every holder with their value, entry, liquidation price and leverage. Sort by the most traders, the most money, the most long, the most short or the most in profit. Every coin carries the logo Hyperliquid's own app shows for it.
 - **The tape.** Every trade of $10K, $50K, $100K, $500K or $1M and up on the thirty busiest coins, straight from Hyperliquid's websocket. Narrow it to traders on the board, and turn on browser notifications for their large trades.
-- **Wallets.** Account value, how much sits in positions, leverage and margin; profit on perps over the last thirty days; every open position with size, entry, mark, liquidation price and leverage; a win rate over the latest fills that closed something; and those fills, from "Open Long" to "Close Short", with what each realized.
+- **Wallets.** Account value, how much sits in positions, leverage and margin; profit on perps over the last thirty days; every open position with size, entry, mark, liquidation price and leverage; a win rate over the latest fills that closed something; and those fills, from "Open Long" to "Close Short", with what each realized. Spot fills are named by their tokens, as in UBTC/USDC.
 - **The board.** Hyperliquid's leaderboard by profit for today, this week, this month or all time, with return, account value and volume. Accounts that trade less than $100K a month are left out: they mostly hold spot, and their profit is the price of what they hold.
 - **Twenty to a page.** Every list, from the coins and their holders to the tape, the board, a wallet's positions and its fills, shows twenty at a time with page numbers under it.
 - **Shareable.** The view, window, sort, tape size and open wallet are plain state, handed to you on every change, so a page can keep them in its URL.
@@ -71,6 +71,7 @@ app.destroy();
 | `depth` | `50` | How many of the board's top traders Positions reads. |
 | `coins` | `30` | How many of the busiest coins the tape listens to. |
 | `live` | `true` | Listen for trades while the tape is showing. |
+| `coinIcon` | Hyperliquid's logos | `(coin) => url` for each perp's logo, or `false` for the coin's first letter only. |
 | `theme` | light | `"dark"`, or `"auto"` to follow the system. |
 | `info`, `socket` | Hyperliquid | The info API and websocket addresses. |
 | `fetch`, `WebSocket`, `concurrency`, `ttl` | | For other runtimes, tests and recordings. |
@@ -104,6 +105,7 @@ Every colour and size is a custom property on `.wh`, such as `--wh-bg`, `--wh-te
 
 - Positions reads the top traders' accounts (`clearinghouseState`, a weight of 2 each), keeps the positions worth $1,000 or more, and adds them up by coin and side. The average entry is weighted by size and the average leverage by value. Mark prices and 24-hour changes come from `metaAndAssetCtxs`.
 - The tape subscribes to the `trades` channel of each of the busiest coins by 24-hour volume. Every trade names its buyer and seller, so a trade is shown under whichever of them is on the board, or under the taker.
+- Logos come from where Hyperliquid's app keeps them (`app.hyperliquid.xyz/coins`), loaded by the browser as a list shows them; a coin without one keeps its first letter. Fills name a spot pair by an index (`@107`), so for a wallet that trades spot the client also reads `spotMeta` once for the tokens' names.
 - A wallet's profit chart is the `perpMonth` series of `portfolio`, which leaves out spot. Its record counts the fills among its latest 2000 (`userFills`) that realized a profit or a loss; fills within a dollar of even count as neither.
 
 ## What it doesn't do yet

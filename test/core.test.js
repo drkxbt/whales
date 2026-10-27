@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   client,
+  coinIcon,
   condenseBoard,
   displayName,
   fillRecord,
@@ -22,6 +23,7 @@ import {
   toFill,
   toMarkets,
   toPnl,
+  toSpotPairs,
   toTrade,
 } from "../dist/index.js";
 
@@ -241,4 +243,29 @@ test("a board read from a server comes back with numbers, a missing one as NaN",
   assert.equal(board.windows.month[0].accountValue, 10);
   assert.ok(Number.isNaN(board.windows.month[0].roi));
   assert.deepEqual(board.windows.day, []);
+});
+
+test("a coin's logo is the one Hyperliquid's app shows, by the coin's own name", () => {
+  assert.equal(coinIcon("BTC"), "https://app.hyperliquid.xyz/coins/BTC.svg");
+  assert.equal(coinIcon("kPEPE"), "https://app.hyperliquid.xyz/coins/PEPE.svg");
+  assert.equal(coinIcon("kaito"), "https://app.hyperliquid.xyz/coins/kaito.svg");
+});
+
+test("spot pairs get their tokens' names, and Unit's tokens the logo of the coin they carry", () => {
+  const pairs = toSpotPairs({
+    tokens: [
+      { name: "USDC", index: 0, fullName: null },
+      { name: "PURR", index: 1, fullName: null },
+      { name: "UBTC", index: 197, fullName: "Unit Bitcoin" },
+    ],
+    universe: [
+      { name: "PURR/USDC", tokens: [1, 0], index: 0 },
+      { name: "@142", tokens: [197, 0], index: 142 },
+      { name: "@999", tokens: [404, 0], index: 999 },
+    ],
+  });
+  assert.deepEqual([...pairs.keys()], ["PURR/USDC", "@142"]);
+  assert.equal(pairs.get("@142").name, "UBTC/USDC");
+  assert.equal(pairs.get("@142").icon, "https://app.hyperliquid.xyz/coins/BTC.svg");
+  assert.equal(pairs.get("PURR/USDC").icon, "https://app.hyperliquid.xyz/coins/PURR_spot.svg");
 });
