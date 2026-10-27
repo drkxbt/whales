@@ -50,9 +50,9 @@ export interface Whales {
 }
 
 const VIEWS: { key: View; label: string; hint: string }[] = [
-  { key: "positions", label: "Positions", hint: "How the top traders are positioned now" },
-  { key: "tape", label: "Tape", hint: "Large trades as they happen" },
-  { key: "board", label: "Board", hint: "The traders who made the most" },
+  { key: "positions", label: "Positions", hint: "Top traders' longs and shorts" },
+  { key: "tape", label: "Tape", hint: "Big trades, live" },
+  { key: "board", label: "Board", hint: "Who made the most" },
 ];
 const WINDOWS: { key: Window; label: string }[] = [
   { key: "day", label: "Today" },
@@ -117,10 +117,15 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
   const panels = new Map<View, HTMLElement>();
   const id = `wh-${Math.random().toString(36).slice(2, 8)}`;
   for (const view of VIEWS) {
-    const button = element("button", "wh-tab", view.label);
+    const button = element("button", "wh-tab");
     button.type = "button";
     button.id = `${id}-tab-${view.key}`;
-    button.title = view.hint;
+    // What the view is, under its name; read out as the tab's description rather than as part of its name.
+    const hint = element("span", "wh-tab-hint", view.hint);
+    hint.id = `${id}-hint-${view.key}`;
+    hint.setAttribute("aria-hidden", "true");
+    button.append(element("span", "wh-tab-label", view.label), hint);
+    button.setAttribute("aria-describedby", hint.id);
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", `${id}-panel-${view.key}`);
     button.addEventListener("click", () => setState({ view: view.key }));
@@ -136,6 +141,20 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     setState({ view: next });
     tabButtons.get(next)?.focus();
   });
+  // The selected tab's ground slides to the tab picked next, so the eye follows the switch.
+  const tabPill = element("span", "wh-tab-pill");
+  tabPill.setAttribute("aria-hidden", "true");
+  tabs.prepend(tabPill);
+  function placeTabPill(animate: boolean) {
+    const button = tabButtons.get(state.view);
+    if (!button || !button.offsetWidth) return;
+    tabPill.classList.toggle("is-still", !animate);
+    tabPill.style.width = `${button.offsetWidth}px`;
+    tabPill.style.height = `${button.offsetHeight}px`;
+    tabPill.style.transform = `translate(${button.offsetLeft}px, ${button.offsetTop}px)`;
+  }
+  const tabsObserver = typeof ResizeObserver === "function" ? new ResizeObserver(() => placeTabPill(false)) : null;
+  tabsObserver?.observe(tabs);
   const windowGroup = segmented("Window", WINDOWS, () => state.window, (key) => setState({ window: key }));
   head.append(tabs, windowGroup.element);
 
@@ -815,6 +834,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
       button.setAttribute("aria-selected", String(selected));
       button.tabIndex = selected ? 0 : -1;
     }
+    placeTabPill(Boolean(before && before.view !== state.view));
     for (const [key, section] of panels) section.hidden = key !== state.view;
     root.dataset.view = state.view;
     windowGroup.sync();
@@ -874,6 +894,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
       walletLoad?.abort();
       tapeFeed?.stop();
       clearInterval(clock);
+      tabsObserver?.disconnect();
       root.remove();
     },
   };

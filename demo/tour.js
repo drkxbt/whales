@@ -48,7 +48,7 @@ export async function run(name, app) {
     }
     lift();
   }
-  const tab = (label) => [...document.querySelectorAll(".wh-tab")].find((button) => button.textContent === label);
+  const tab = (label) => [...document.querySelectorAll(".wh-tab")].find((button) => button.querySelector(".wh-tab-label")?.textContent === label);
   const holder = (n) => document.querySelectorAll(".wh-coin-detail:not([hidden]) .wh-trader")[n];
 
   function reset() {

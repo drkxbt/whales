@@ -5,6 +5,7 @@
   --wh-bg: #ffffff;
   --wh-sunk: #f6f5f1;
   --wh-raised: #ffffff;
+  --wh-pick: #ffffff;
   --wh-text: #141416;
   --wh-muted: #66676b;
   --wh-faint: #a3a39e;
@@ -39,6 +40,7 @@
   --wh-bg: #0e0f11;
   --wh-sunk: #141518;
   --wh-raised: #17181c;
+  --wh-pick: #26282d;
   --wh-text: #ecebe6;
   --wh-muted: #94938e;
   --wh-faint: #5c5c57;
@@ -63,6 +65,7 @@
     --wh-bg: #0e0f11;
     --wh-sunk: #141518;
     --wh-raised: #17181c;
+    --wh-pick: #26282d;
     --wh-text: #ecebe6;
     --wh-muted: #94938e;
     --wh-faint: #5c5c57;
@@ -86,9 +89,8 @@
 .wh *,
 .wh *::before,
 .wh *::after { box-sizing: border-box; }
-.wh button,
-.wh select,
-.wh input { font: inherit; color: inherit; }
+/* No weight of its own, so each control's class still sets its type and colour over this. */
+:where(.wh) :where(button, select, input) { font: inherit; color: inherit; }
 .wh [hidden] { display: none !important; }
 .wh :focus-visible { outline: 2px solid var(--wh-text); outline-offset: 2px; }
 
@@ -123,24 +125,50 @@
   margin-bottom: 12px;
 }
 
-.wh-tabs { display: flex; gap: 4px; }
+.wh-tabs {
+  position: relative;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wh-sunk);
+  box-shadow: inset 0 0 0 1px var(--wh-line);
+}
+
+/* The selected tab's ground. The script sizes it to the selected tab and moves it there. */
+.wh-tab-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 8px;
+  background: var(--wh-pick);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--wh-line);
+  transition: transform 280ms var(--wh-ease);
+}
+.wh-tab-pill.is-still { transition: none; }
 
 .wh-tab {
   position: relative;
-  min-height: 40px;
-  padding: 0 14px;
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  min-height: 48px;
+  padding: 6px 14px;
   border: 0;
   border-radius: 8px;
   background: none;
-  color: var(--wh-muted);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  color: var(--wh-text);
+  text-align: left;
   cursor: pointer;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition: background-color 160ms ease, transform 160ms var(--wh-ease);
 }
-.wh-tab:hover { color: var(--wh-text); background: var(--wh-hover); }
-.wh-tab[aria-selected="true"] { color: var(--wh-text); background: var(--wh-sunk); }
+.wh-tab-label { font-size: 15px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
+.wh-tab-hint { color: var(--wh-muted); font-size: 12px; line-height: 1.3; text-wrap: balance; }
+@media (hover: hover) {
+  .wh-tab[aria-selected="false"]:hover { background: var(--wh-hover); }
+}
 .wh-tab:active { transform: scale(0.97); }
 
 .wh-segmented {
@@ -170,7 +198,7 @@
 .wh-segment:hover { color: var(--wh-text); }
 .wh-segment[aria-pressed="true"] {
   color: var(--wh-text);
-  background: var(--wh-raised);
+  background: var(--wh-pick);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--wh-line);
 }
 
@@ -746,7 +774,8 @@ html:has(.wh-wallet[open]) { overflow: hidden; }
 @container (max-width: 560px) {
   .wh-hide-sm { display: none; }
   .wh-head { gap: 10px; }
-  .wh-tab { padding: 0 12px; }
+  .wh-tabs { flex: 1 1 100%; }
+  .wh-tab { padding: 6px 10px; }
   .wh-trend { width: 76px; }
   .wh-trend .wh-spark { width: 64px; }
   .wh-table td { padding: 6px 10px; }
