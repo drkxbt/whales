@@ -9,7 +9,7 @@ Trackers of Hyperliquid's top wallets usually keep the useful parts behind a pai
 - **Positions.** The open perp positions of the board's top traders, added up by coin: the number of traders long and short, the value on each side as a bar, the average entry on each side weighted by size, the open profit, and every holder with their value, entry, liquidation price and leverage. Sort by the most traders, the most money, the most long, the most short or the most in profit. Every coin carries the logo Hyperliquid's own app shows for it.
 - **The tape.** Every trade of $10K, $50K, $100K, $500K or $1M and up on the thirty busiest coins, straight from Hyperliquid's websocket. Narrow it to traders on the board, and turn on browser notifications for their large trades.
 - **Wallets.** Account value, how much sits in positions, leverage and margin; profit on perps over the last thirty days; every open position with size, entry, mark, liquidation price and leverage; a win rate over the latest fills that closed something; and those fills, from "Open Long" to "Close Short", with what each realized. Spot fills are named by their tokens, as in UBTC/USDC.
-- **The board.** Hyperliquid's leaderboard by profit for today, this week, this month or all time, with return, account value and volume. Accounts that trade less than $100K a month are left out: they mostly hold spot, and their profit is the price of what they hold.
+- **The board.** Hyperliquid's leaderboard, its top 1000 by profit for today, this week, this month or all time, with return, account value and volume. Accounts that trade less than $100K a month are left out: they mostly hold spot, and their profit is the price of what they hold. Every wallet gets an avatar drawn from its address: its own, and the same everywhere.
 - **Twenty to a page.** Every list, from the coins and their holders to the tape, the board, a wallet's positions and its fills, shows twenty at a time with page numbers under it.
 - **Shareable.** The view, window, sort, tape size and open wallet are plain state, handed to you on every change, so a page can keep them in its URL.
 - **Gentle on the API.** Hyperliquid allows each IP a weight of 1200 a minute. Reads share a cache, identical reads made at once share one request, at most six run at a time, and a `429` waits before trying again.
@@ -33,7 +33,7 @@ import "@drkxbt/whales/whales.css";
 
 ## The board needs a server
 
-Hyperliquid publishes its leaderboard as one file of every trader, close to forty megabytes, without CORS headers, so a browser can't read it. Serve a condensed copy from your own host: `condenseBoard` keeps the top 300 of each window. On Vercel:
+Hyperliquid publishes its leaderboard as one file of every trader, close to forty megabytes, without CORS headers, so a browser can't read it. Serve a condensed copy from your own host: `condenseBoard` keeps the top 1000 of each window. On Vercel:
 
 ```js
 // api/board.js
@@ -68,7 +68,7 @@ app.destroy();
 | - | - | - |
 | `board` | | The address of the condensed board. Required in a browser. |
 | `state` | Positions, month | Where to start: `view` (`"positions"`, `"tape"`, `"board"`), `window` (`"day"`, `"week"`, `"month"`, `"allTime"`), `wallet`, `sort` (`"traders"`, `"notional"`, `"long"`, `"short"`, `"pnl"`), `minUsd`, `topOnly`. |
-| `depth` | `50` | How many of the board's top traders Positions reads. |
+| `depth` | `200` | How many of the board's top traders Positions reads, up to 300. Each is a read of weight 2 against Hyperliquid's 1200 a minute per visitor. |
 | `coins` | `30` | How many of the busiest coins the tape listens to. |
 | `live` | `true` | Listen for trades while the tape is showing. |
 | `coinIcon` | Hyperliquid's logos | `(coin) => url` for each perp's logo, or `false` for the coin's first letter only. |

@@ -1,6 +1,6 @@
 {
   "name": "@drkxbt/whales",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "See how Hyperliquid's best traders are positioned: the top wallets' open perp positions added up by coin, long against short, at what entry and leverage; every large trade as it happens; and each wallet's positions and record. Public data, no key, no dependencies.",
   "license": "MIT",
   "author": "drk",

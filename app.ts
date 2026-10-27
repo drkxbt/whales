@@ -3,6 +3,7 @@ import { WINDOWS as WINDOW_KEYS, type Board, type Window } from "./board.js";
 import { displayName, EMPTY, formatAge, formatLeverage, formatPercent, formatPnl, formatPrice, formatSize, formatUsd, shortWallet } from "./format.js";
 import { fillRecord, pageList, positioning, sortPositioning, sparkline, type CoinRow, type PositionSort } from "./model.js";
 import { tape, type Tape } from "./tape.js";
+import { walletAvatar } from "./avatar.js";
 
 export type View = "positions" | "tape" | "board";
 
@@ -88,7 +89,7 @@ const ICONS = {
 export function whales(container: HTMLElement, options: WhalesOptions = {}): Whales {
   const api = options.api ?? client(options);
   const live = options.live ?? true;
-  const depth = Math.max(5, Math.min(200, options.depth ?? 50));
+  const depth = Math.max(5, Math.min(300, options.depth ?? 200));
   const coinCount = Math.max(1, Math.min(100, options.coins ?? 30));
   const iconFor = options.coinIcon === false ? () => "" : (options.coinIcon ?? coinIcon);
   const pairIcon = (pair: SpotPair) => (options.coinIcon === false ? "" : pair.icon);
@@ -174,6 +175,8 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     if (window === state.window) tops = new Map(traders.map((trader) => [trader.wallet, trader]));
     return traders;
   }
+  /** "the top 1,000 of this month's board", once the board is in. */
+  const boardTop = () => (tops.size ? `the top ${tops.size.toLocaleString("en-US")} of ${BOARD_PREFIX[state.window]} board` : `${BOARD_PREFIX[state.window]} board`);
 
   /* ---------- Positions ---------- */
 
@@ -213,10 +216,12 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
       const [traders, markets] = await Promise.all([boardFor(state.window), readMarkets()]);
       const top = traders.slice(0, depth);
       let done = 0;
+      let missed = 0;
       const holdings = await Promise.all(
         top.map(async (trader) => {
           const account = await api.account(trader.wallet, { signal }).catch((error) => {
             if (signal.aborted) throw error;
+            missed++;
             return null;
           });
           showProgress(`Reading positions: ${++done} of ${top.length} traders`, done / top.length);
@@ -224,8 +229,10 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
         }),
       );
       if (signal.aborted) return;
+      // Hyperliquid answers each visitor's reads up to a limit a minute; past it, say how many are missing.
+      if (missed) positionsNote.textContent += ` ${missed} of the ${top.length} couldn't be read just now, so they're missing; try again in a minute.`;
       coinRows = positioning(holdings, new Map(markets.map((market) => [market.coin, market])), { minValue: 1000 });
-      positionsKey = key;
+      positionsKey = missed ? "" : key;
       showProgress("", 1);
       renderPositions();
     } catch (error) {
@@ -434,7 +441,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     const matching = trades.filter((trade) => trade.usd >= state.minUsd && (!state.topOnly || tops.has(trade.buyer) || tops.has(trade.seller)));
     tapePager.update(matching.length);
     const shown = matching.slice((tapePager.page - 1) * PAGE, tapePager.page * PAGE);
-    tapeNote.textContent = `Every trade of ${formatUsd(state.minUsd)} or more on the ${tapeCoins.length || coinCount} busiest coins, as it happens${state.topOnly ? `, by traders in the top 300 of ${BOARD_PREFIX[state.window]} board.` : `. A star marks a trader in the top 300 of ${BOARD_PREFIX[state.window]} board.`}`;
+    tapeNote.textContent = `Every trade of ${formatUsd(state.minUsd)} or more on the ${tapeCoins.length || coinCount} busiest coins, as it happens${state.topOnly ? `, by traders in ${boardTop()}.` : `. A star marks a trader in ${boardTop()}.`}`;
     if (!shown.length) {
       tapeBody.replaceChildren(stateRow(5, tapeStatus === "live" ? "No trades this size yet. They show up here as they happen." : tapeStatus === "closed" ? "The connection dropped. Reconnecting…" : "Connecting to Hyperliquid…"));
       return;
@@ -643,13 +650,15 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     const links = element("div", "wh-wallet-links");
     links.append(externalLink(`https://app.hyperliquid.xyz/explorer/address/${wallet}`, "Hyperliquid explorer"));
     const top = element("header", "wh-wallet-head");
-    top.append(avatar(known?.name ?? "", wallet, "is-large"), element("div", "wh-wallet-title", undefined, [name, place, address, links]), close);
+    top.append(avatar(wallet, "is-large"), element("div", "wh-wallet-title", undefined, [name, place, address, links]), close);
     if (!known) {
-      // A wallet opened from the tape or a link may sit further down the board than the page holds.
+      // A wallet opened from a link can come before the board does, or sit further down it than the board holds.
       boardFor(state.window)
         .then(() => {
           if (signal.aborted) return;
-          place.textContent = `Not in the top 300 of ${BOARD_PREFIX[state.window]} board`;
+          const ranked = tops.get(wallet);
+          if (ranked) name.textContent = displayName(ranked.name, wallet);
+          place.textContent = ranked ? `Number ${ranked.rank} on ${BOARD_PREFIX[state.window]} board, ${formatPnl(ranked.pnl)}` : `Not in ${boardTop()}`;
         })
         .catch(() => {});
     }
@@ -835,7 +844,7 @@ export function whales(container: HTMLElement, options: WhalesOptions = {}): Wha
     const td = element("td", "wh-who");
     const button = element("button", "wh-trader");
     button.type = "button";
-    button.append(avatar(trader.name, trader.wallet), element("span", "wh-trader-name", displayName(trader.name, trader.wallet)));
+    button.append(avatar(trader.wallet), element("span", "wh-trader-name", displayName(trader.name, trader.wallet)));
     if (star) {
       button.append(icon(ICONS.top, "wh-star"), element("span", "wh-sr", `, number ${trader.rank} on the board`));
       button.title = `Number ${trader.rank} on ${BOARD_PREFIX[state.window]} board`;
@@ -1007,11 +1016,10 @@ function coinLogo(src: string, onLoad: () => void): HTMLImageElement | null {
   return img;
 }
 
-function avatar(name: string, wallet: string, extra = ""): HTMLElement {
+function avatar(wallet: string, extra = ""): HTMLElement {
   const disc = element("span", `wh-avatar ${extra}`.trim());
   disc.setAttribute("aria-hidden", "true");
-  disc.style.setProperty("--wh-hue", String(hue(wallet)));
-  disc.textContent = (name ? name : wallet.slice(2)).slice(0, 1).toUpperCase();
+  disc.append(walletAvatar(wallet));
   return disc;
 }
 

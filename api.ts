@@ -299,7 +299,7 @@ export function client(options: ClientOptions = {}): Client {
   const infoUrl = options.info ?? "https://api.hyperliquid.xyz/info";
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
   const ttl = options.ttl ?? 30_000;
-  const limit = Math.max(1, options.concurrency ?? 6);
+  const limit = Math.max(1, options.concurrency ?? 10);
 
   const cache = new Map<string, { at: number; value: Promise<unknown> }>();
   const queue: (() => void)[] = [];

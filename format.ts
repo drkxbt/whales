@@ -5,16 +5,19 @@ const MINUS = "−";
 
 function compact(value: number): string {
   const abs = Math.abs(value);
-  if (abs >= 1e9) return `${trim(abs / 1e9)}B`;
-  if (abs >= 1e6) return `${trim(abs / 1e6)}M`;
-  if (abs >= 1e4) return `${trim(abs / 1e3)}K`;
-  return Math.round(abs).toLocaleString("en-US");
+  if (abs < 1e4) return Math.round(abs).toLocaleString("en-US");
+  // Rounded before the unit is picked, so 999.6M reads 1B rather than 1000M.
+  const rounded = Number(abs.toPrecision(3));
+  if (rounded >= 1e9) return `${trim(rounded / 1e9)}B`;
+  if (rounded >= 1e6) return `${trim(rounded / 1e6)}M`;
+  return `${trim(rounded / 1e3)}K`;
 }
 
-// Three significant figures reads well at every size: 1.24M, 12.4M, 124M.
+// Three significant figures reads well at every size: 1.24M, 12.4M, 124M. Only zeros after a decimal point go.
 function trim(value: number): string {
   const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-  return value.toFixed(digits).replace(/\.?0+$/, "");
+  const text = value.toFixed(digits);
+  return digits ? text.replace(/\.?0+$/, "") : text;
 }
 
 const valid = (value: number | null | undefined): value is number => typeof value === "number" && Number.isFinite(value);

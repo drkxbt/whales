@@ -46,7 +46,7 @@ export interface CondenseOptions {
   minVolume?: number;
 }
 
-export function condenseBoard(raw: RawBoard, { size = 300, minVolume = 100_000 }: CondenseOptions = {}, now = Date.now()): Board {
+export function condenseBoard(raw: RawBoard, { size = 1000, minVolume = 100_000 }: CondenseOptions = {}, now = Date.now()): Board {
   const rows = (raw.leaderboardRows ?? []).flatMap((row) => {
     const windows = new Map(row.windowPerformances ?? []);
     const month = windows.get("month");

@@ -47,6 +47,11 @@ test("prices, sizes and leverage read the way traders write them", () => {
   assert.equal(formatLeverage(4.73), "4.7×");
   assert.equal(formatLeverage(0), "–");
   assert.equal(formatUsd(745_000_000), "$745M");
+  assert.equal(formatUsd(250_368_062), "$250M");
+  assert.equal(formatUsd(100_000), "$100K");
+  assert.equal(formatUsd(199_600_000), "$200M");
+  assert.equal(formatUsd(999_600_000), "$1B");
+  assert.equal(formatPnl(-120_000), "−$120K");
   assert.equal(formatPnl(-1_970_000), "−$1.97M");
   assert.equal(formatPercent(64.4, true), "+64%");
   assert.equal(formatAge(1_000_000 - 3000, 1_000_000), "3s");

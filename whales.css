@@ -311,22 +311,17 @@
 .wh-star { width: 14px; height: 14px; color: var(--wh-star); stroke-width: 0; }
 
 .wh-avatar {
-  --wh-hue: 160;
   position: relative;
-  display: inline-grid;
-  place-items: center;
+  display: inline-block;
   flex: none;
   width: 30px;
   height: 30px;
   overflow: hidden;
   border-radius: 50%;
-  background: hsl(var(--wh-hue) 52% 58%);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
 }
-.wh-avatar.is-large { width: 56px; height: 56px; font-size: 20px; }
+.wh-avatar svg { display: block; width: 100%; height: 100%; }
+.wh-avatar::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08); }
+.wh-avatar.is-large { width: 56px; height: 56px; }
 
 
 .wh-spark { display: block; width: 96px; height: 24px; overflow: visible; }
