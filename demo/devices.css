@@ -1,0 +1,162 @@
+/* Device frames for the recording tours: an iPhone with its status bar, Dynamic Island and Safari's bottom bar, and a
+   MacBook with its notch, the macOS menu bar and a browser window. The page runs in an iframe at the size Safari
+   gives it. Sizes are in points; a .fit box around each scales it by --s and takes up the scaled size. */
+
+.fit { position: relative; width: calc(var(--w) * var(--s, 1)); height: calc(var(--h) * var(--s, 1)); }
+.fit > * { position: absolute; top: 0; left: 0; transform: scale(var(--s, 1)); transform-origin: 0 0; }
+.fit-iphone { --w: 417px; --h: 876px; }
+.fit-macbook { --w: 1360px; --h: 846px; }
+
+.iphone {
+  --frame: 12px;
+  position: relative;
+  width: calc(393px + 2 * var(--frame));
+  height: calc(852px + 2 * var(--frame));
+  padding: var(--frame);
+  border-radius: 68px;
+  background: #0b0b0c;
+  box-shadow:
+    0 0 0 1.5px #77777c,
+    0 0 0 3px #3a3a3e,
+    0 2px 4px rgb(0 0 0 / 0.08),
+    0 48px 80px -40px rgb(0 0 0 / 0.55);
+}
+/* The side buttons: action and volume on the left, power on the right. */
+.iphone::before,
+.iphone::after { content: ""; position: absolute; width: 4px; border-radius: 2px; background: #5d5d62; }
+.iphone::before { top: 150px; left: -5px; height: 34px; box-shadow: 0 60px 0 #5d5d62, 0 112px 0 #5d5d62; }
+.iphone::after { top: 220px; right: -5px; height: 92px; }
+.iphone-screen { position: relative; width: 393px; height: 852px; overflow: hidden; border-radius: 56px; background: #f5f4f0; }
+
+.ios-status {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 4px 30px 0 46px;
+  background: #f5f4f0;
+  color: #000;
+  font: 600 17px/1 -apple-system, "SF Pro Text", system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+.ios-island { position: absolute; top: 11px; left: 50%; width: 125px; height: 37px; translate: -50% 0; border-radius: 20px; background: #000; }
+.ios-icons { display: flex; align-items: center; gap: 6px; }
+.ios-icons svg { display: block; fill: #000; }
+
+.iphone-screen iframe { position: absolute; top: 54px; left: 0; width: 393px; height: 690px; border: 0; background: #f5f4f0; }
+
+/* Safari's bottom bar: the address field, the toolbar under it, then the home indicator. */
+.safari-bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 108px;
+  padding: 8px 14px 0;
+  background: rgb(246 246 246 / 0.96);
+  box-shadow: 0 -0.5px 0 rgb(0 0 0 / 0.18);
+  font: 400 15px/1 -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+.safari-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 0 0 0.5px rgb(0 0 0 / 0.08);
+  color: #000;
+}
+.safari-address .aa { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.safari-address .url { flex: 1; text-align: center; font-size: 15px; }
+.safari-address svg,
+.safari-tools svg { display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.safari-tools { display: flex; justify-content: space-between; padding: 9px 12px 0; color: #0a7aff; }
+.safari-tools svg { width: 24px; height: 24px; }
+.safari-tools .off { color: #b8b8bd; }
+.ios-home { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; translate: -50% 0; border-radius: 3px; background: #000; }
+
+/* The MacBook: a lid with a thin bezel and the notch, the desktop inside it, and the base below. */
+.macbook { display: grid; justify-items: center; width: 1360px; }
+.mb-lid {
+  position: relative;
+  padding: 14px 14px 18px;
+  border-radius: 22px 22px 8px 8px;
+  background: #0d0d0f;
+  box-shadow: 0 0 0 1.5px #a6a6ab, 0 0 0 3px #5e5e63;
+}
+.mb-notch { position: absolute; top: 14px; left: 50%; z-index: 3; width: 190px; height: 30px; translate: -50% 0; border-radius: 0 0 10px 10px; background: #0d0d0f; }
+.mb-screen {
+  position: relative;
+  width: 1220px;
+  height: 790px;
+  overflow: hidden;
+  border-radius: 10px 10px 2px 2px;
+  background: linear-gradient(160deg, #cdd8dd 0%, #e7e2d6 55%, #d8cfc0 100%);
+}
+.mac-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 30px;
+  padding: 0 16px 0 20px;
+  background: rgb(255 255 255 / 0.5);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  color: #111;
+  font: 500 13.5px/1 -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+.mac-menu .app { font-weight: 700; }
+.mac-menu .right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.mac-menu svg { display: block; fill: #111; }
+.mac-window {
+  position: absolute;
+  top: 44px;
+  left: 60px;
+  width: 1100px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f5f4f0;
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.25), 0 20px 50px -10px rgb(0 0 0 / 0.4);
+}
+.mac-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 52px;
+  padding: 0 16px;
+  background: #ecebe8;
+  box-shadow: inset 0 -0.5px 0 rgb(0 0 0 / 0.16);
+  color: #5f5f64;
+  font: 400 13.5px/1 -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+.mac-lights { display: flex; gap: 8px; margin-right: 10px; }
+.mac-lights span { width: 12px; height: 12px; border-radius: 999px; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.15); }
+.mac-lights span:nth-child(1) { background: #ff5f57; }
+.mac-lights span:nth-child(2) { background: #febc2e; }
+.mac-lights span:nth-child(3) { background: #28c840; }
+.mac-toolbar svg { display: block; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.mac-address { display: flex; flex: 1; align-items: center; justify-content: center; gap: 6px; max-width: 520px; height: 32px; margin: 0 auto; border-radius: 8px; background: rgb(0 0 0 / 0.06); color: #222; }
+.mac-window iframe { display: block; width: 1100px; height: 700px; border: 0; background: #f5f4f0; }
+.mb-base {
+  position: relative;
+  width: 1360px;
+  height: 22px;
+  border-radius: 2px 2px 18px 18px;
+  background: linear-gradient(#e6e6ea, #b9b9be 70%, #8e8e93);
+  box-shadow: 0 30px 40px -20px rgb(0 0 0 / 0.5);
+}
+.mb-base::before { content: ""; position: absolute; top: 0; left: 50%; width: 180px; height: 9px; translate: -50% 0; border-radius: 0 0 9px 9px; background: linear-gradient(#a7a7ac, #c9c9ce); }
+.mac-toolbar .dim { opacity: 0.4; }

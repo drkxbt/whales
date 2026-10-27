@@ -1,0 +1,130 @@
+@font-face {
+  font-family: "Geist";
+  src: url("fonts/geist.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("fonts/geist-mono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --bg: #f5f4f0;
+  --card: #ffffff;
+  --text: #121212;
+  --text-2: #45464a;
+  --text-3: #66676b;
+  --edge: rgb(18 18 18 / 0.08);
+  --mint: #2ff0b8;
+  --mint-ink: #04392a;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --mono: "Geist Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  background: var(--bg);
+  color: var(--text);
+  font: 400 15px/1.55 "Geist", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--mint); color: var(--mint-ink); }
+code { font-family: var(--mono); font-size: 0.92em; }
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* The app sits on the page's paper; its tables and cards stay white. */
+.wh { --wh-sunk: #efeee9; --wh-hover: #faf9f6; }
+
+.app > * { width: min(1180px, 100% - 32px); margin-inline: auto; }
+.bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.brand { font-size: 17px; font-weight: 650; letter-spacing: -0.03em; }
+.icon-link {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--edge), 0 1px 2px rgb(0 0 0 / 0.04);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 160ms ease, transform 160ms var(--ease-out);
+}
+.icon-link:hover { color: var(--text); }
+.icon-link:active { transform: scale(0.96); }
+.icon-link svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.intro { padding-top: 28px; }
+h1 { max-width: 22ch; margin: 0; font-size: 40px; font-weight: 650; line-height: 1.05; letter-spacing: -0.04em; text-wrap: balance; }
+.lede { max-width: 68ch; margin: 14px 0 0; color: var(--text-2); text-wrap: pretty; }
+.install { margin-top: 16px; font-size: 13.5px; }
+.install code { display: inline-block; padding: 7px 12px; border-radius: 8px; background: var(--card); box-shadow: inset 0 0 0 1px var(--edge); }
+
+.work { margin-top: 32px; }
+
+.foot { display: grid; gap: 2px; margin-top: 48px; padding: 18px 0 36px; border-top: 1px solid var(--edge); color: var(--text-3); font-size: 13px; }
+.foot p { margin: 0; }
+
+@media (max-width: 640px) {
+  .app > * { width: min(1180px, 100% - 24px); }
+  .intro { padding-top: 16px; }
+  h1 { font-size: 30px; }
+}
+
+/* The tour's pointer: where a recorded touch or click is, pressed or about to lift. */
+.finger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgb(18 18 18 / 0.08);
+  box-shadow: inset 0 0 0 2px rgb(18 18 18 / 0.55), 0 2px 8px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  scale: 0.8;
+  pointer-events: none;
+  transition: opacity 140ms ease, scale 140ms ease;
+}
+.finger[data-on] { opacity: 1; scale: 1; }
+.finger[data-down] { scale: 0.86; }
+
+/* In the recording, the app fills the screen it is shown on. */
+html[data-tour] :is(.bar, .intro, .foot) { display: none; }
+html[data-tour] .work { margin-top: 0; padding-top: 16px; }
+html[data-tour="phone"] .work { padding-top: 10px; }
+html[data-tour] { scrollbar-width: none; }
+/* The tour's pointer: where a recorded touch or click is, pressed or about to lift. */
+.finger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgb(18 18 18 / 0.08);
+  box-shadow: inset 0 0 0 2px rgb(18 18 18 / 0.55), 0 2px 8px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  scale: 0.8;
+  pointer-events: none;
+  transition: opacity 140ms ease, scale 140ms ease;
+}
+.finger[data-on] { opacity: 1; scale: 1; }
+.finger[data-down] { scale: 0.86; }
+
+/* In the recording, the app fills the screen it is shown on. */
+html[data-tour] :is(.bar, .intro, .foot) { display: none; }
+html[data-tour] .work { margin-top: 0; padding-top: 16px; }
+html[data-tour="phone"] .work { padding-top: 10px; }
+html[data-tour] { scrollbar-width: none; }

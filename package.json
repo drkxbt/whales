@@ -1,0 +1,52 @@
+{
+  "name": "@drkxbt/whales",
+  "version": "0.1.0",
+  "description": "See how Hyperliquid's best traders are positioned: the top wallets' open perp positions added up by coin, long against short, at what entry and leverage; every large trade as it happens; and each wallet's positions and record. Public data, no key, no dependencies.",
+  "license": "MIT",
+  "author": "drk",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./board": {
+      "types": "./dist/board.d.ts",
+      "default": "./dist/board.js"
+    },
+    "./whales.css": "./whales.css"
+  },
+  "files": [
+    "dist",
+    "whales.css"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.json && node --test \"test/*.test.js\"",
+    "demo": "tsc -p tsconfig.json && node demo/serve.js"
+  },
+  "devDependencies": {
+    "typescript": ">=5.4"
+  },
+  "keywords": [
+    "hyperliquid",
+    "perpetuals",
+    "smart-money",
+    "whale-tracker",
+    "positions",
+    "leaderboard",
+    "crypto",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drkxbt/whales.git"
+  },
+  "homepage": "https://github.com/drkxbt/whales#readme"
+}

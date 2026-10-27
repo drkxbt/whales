@@ -1,0 +1,8 @@
+/* A MacBook and an iPhone side by side, filling a 16:10 window. The phone is drawn a little larger than true scale,
+   so its screen stays readable next to the laptop's. */
+html, body { height: 100%; overflow: hidden; }
+.stage { display: flex; align-items: center; justify-content: center; gap: 40px; height: 100%; }
+.stage .fit-macbook { --s: 0.68; }
+.stage .fit-iphone { --s: 0.72; }
+.device { display: grid; justify-items: center; gap: 16px; margin: 0; }
+.device figcaption { color: var(--text-3); font-size: 14px; font-weight: 500; }
