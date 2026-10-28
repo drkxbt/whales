@@ -2,6 +2,8 @@
 
 See how Hyperliquid's best traders are positioned. Positions adds up the open perp positions of the top wallets on the board, coin by coin: how many are long and how many short, how much sits on each side, their average entry and leverage, and how much they are up. The tape shows every large trade on the busiest coins as it happens, with a star on the ones from traders on the board. Open any wallet for its positions, its profit over the month, its record and its fills. Everything comes from Hyperliquid's public API, with no key and no account. Plain TypeScript, no dependencies.
 
+Use it live at [drk.vc/whales](https://drk.vc/whales).
+
 ![A MacBook and an iPhone running the tracker in Safari: Positions lists the coins the month's top thirty traders hold, HYPE opens to show who is long and who is short with their value, entry, liquidation price and leverage, the second biggest holder's wallet opens in a card in the middle of the screen with its account, leverage, monthly profit and open positions, the tape fills with trades of $10K and up and narrows to traders on the board, and the board ranks the month's top traders; on the iPhone the wallet rises from the bottom as a sheet](demo/preview.webp)
 
 Trackers of Hyperliquid's top wallets usually keep the useful parts behind a paid plan: where the big accounts are positioned, alerts when they trade, more than a handful of wallets. This one is MIT licensed: use it in a product, change it, ship it.
